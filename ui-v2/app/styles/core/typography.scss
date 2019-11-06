@@ -33,7 +33,10 @@ h3,
 /* Weighting */
 h1,
 %app-content div > dt,
-%header-drop-nav .is-active {
+%header-drop-nav .is-active,
+%route-card section dt,
+%route-card header:not(.short) dd,
+%splitter-card > header {
   font-weight: $typo-weight-bold;
 }
 h2,
@@ -56,7 +59,8 @@ main label a[rel*='help'],
 %pill,
 %tbody-th em,
 %form-element > strong,
-%app-view h1 em {
+%app-view h1 em,
+%route-card header dt {
   font-weight: $typo-weight-normal;
 }
 th,
