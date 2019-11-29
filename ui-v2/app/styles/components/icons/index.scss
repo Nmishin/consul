@@ -47,13 +47,8 @@
   left: 50%;
   pointer-events: none;
 }
-%with-proxy,
-%with-chevron {
+%with-proxy {
   position: relative;
-}
-%with-chevron {
-  padding-left: 10px;
-  display: inline-block;
 }
 %with-proxy::before {
   @extend %pseudo-icon;
@@ -63,21 +58,6 @@
   left: 3px;
   margin-top: -9px;
   background-color: $color-transparent;
-}
-%with-chevron::before {
-  @extend %pseudo-icon;
-  content: '❮';
-  width: 6px;
-  background-color: transparent;
-  left: 0;
-  font-size: 0.7rem;
-}
-/*TODO: All chevrons need merging */
-%with-chevron-down::before {
-  @extend %pseudo-icon-bg-img;
-  background-image: $chevron-svg;
-  width: 10px;
-  height: 6px;
 }
 %with-star-before::before,
 %with-star-after::after {
