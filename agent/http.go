@@ -580,6 +580,15 @@ func decodeBody(body io.Reader, out interface{}) error {
 	return json.NewDecoder(body).Decode(&out)
 }
 
+func decodeBodyStrict(body io.Reader, out interface{}) error {
+	if body == nil {
+		return io.EOF
+	}
+	decoder := json.NewDecoder(body)
+	decoder.DisallowUnknownFields()
+	return decoder.Decode(&out)
+}
+
 // decodeBodyDeprecated is deprecated, please ues decodeBody above.
 // decodeBodyDeprecated is used to decode a JSON request body
 func decodeBodyDeprecated(req *http.Request, out interface{}, cb func(interface{}) error) error {

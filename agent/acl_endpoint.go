@@ -186,7 +186,9 @@ func (s *HTTPServer) ACLPolicyList(resp http.ResponseWriter, req *http.Request) 
 	if done := s.parse(resp, req, &args.Datacenter, &args.QueryOptions); done {
 		return nil, nil
 	}
-	s.parseEntMeta(req, &args.EnterpriseMeta)
+	if err := s.parseEntMeta(req, &args.EnterpriseMeta); err != nil {
+		return nil, err
+	}
 
 	if args.Datacenter == "" {
 		args.Datacenter = s.agent.config.Datacenter
@@ -244,7 +246,9 @@ func (s *HTTPServer) ACLPolicyRead(resp http.ResponseWriter, req *http.Request, 
 		return nil, nil
 	}
 
-	s.parseEntMeta(req, &args.EnterpriseMeta)
+	if err := s.parseEntMeta(req, &args.EnterpriseMeta); err != nil {
+		return nil, err
+	}
 
 	if args.Datacenter == "" {
 		args.Datacenter = s.agent.config.Datacenter
@@ -281,9 +285,12 @@ func (s *HTTPServer) aclPolicyWriteInternal(resp http.ResponseWriter, req *http.
 		Datacenter: s.agent.config.Datacenter,
 	}
 	s.parseToken(req, &args.Token)
-	s.parseEntMeta(req, &args.Policy.EnterpriseMeta)
+	if err := s.parseEntMeta(req, &args.Policy.EnterpriseMeta); err != nil {
+		return nil, err
+	}
 
-	if err := decodeBody(req.Body, &args.Policy); err != nil {
+	if err := decodeBodyStrict(req.Body, &args.Policy); err != nil {
+		err := s.handleUnknownEnterpriseFields(err)
 		return nil, BadRequestError{Reason: fmt.Sprintf("Policy decoding failed: %v", err)}
 	}
 
@@ -315,7 +322,9 @@ func (s *HTTPServer) ACLPolicyDelete(resp http.ResponseWriter, req *http.Request
 		PolicyID:   policyID,
 	}
 	s.parseToken(req, &args.Token)
-	s.parseEntMeta(req, &args.EnterpriseMeta)
+	if err := s.parseEntMeta(req, &args.EnterpriseMeta); err != nil {
+		return nil, err
+	}
 
 	var ignored string
 	if err := s.agent.RPC("ACL.PolicyDelete", args, &ignored); err != nil {
@@ -338,7 +347,9 @@ func (s *HTTPServer) ACLTokenList(resp http.ResponseWriter, req *http.Request) (
 		return nil, nil
 	}
 
-	s.parseEntMeta(req, &args.EnterpriseMeta)
+	if err := s.parseEntMeta(req, &args.EnterpriseMeta); err != nil {
+		return nil, err
+	}
 
 	if args.Datacenter == "" {
 		args.Datacenter = s.agent.config.Datacenter
@@ -442,7 +453,9 @@ func (s *HTTPServer) ACLTokenGet(resp http.ResponseWriter, req *http.Request, to
 		return nil, nil
 	}
 
-	s.parseEntMeta(req, &args.EnterpriseMeta)
+	if err := s.parseEntMeta(req, &args.EnterpriseMeta); err != nil {
+		return nil, err
+	}
 
 	if args.Datacenter == "" {
 		args.Datacenter = s.agent.config.Datacenter
@@ -471,9 +484,12 @@ func (s *HTTPServer) aclTokenSetInternal(resp http.ResponseWriter, req *http.Req
 		Create:     create,
 	}
 	s.parseToken(req, &args.Token)
-	s.parseEntMeta(req, &args.ACLToken.EnterpriseMeta)
+	if err := s.parseEntMeta(req, &args.ACLToken.EnterpriseMeta); err != nil {
+		return nil, err
+	}
 
-	if err := decodeBody(req.Body, &args.ACLToken); err != nil {
+	if err := decodeBodyStrict(req.Body, &args.ACLToken); err != nil {
+		err := s.handleUnknownEnterpriseFields(err)
 		return nil, BadRequestError{Reason: fmt.Sprintf("Token decoding failed: %v", err)}
 	}
 
@@ -499,7 +515,9 @@ func (s *HTTPServer) ACLTokenDelete(resp http.ResponseWriter, req *http.Request,
 		TokenID:    tokenID,
 	}
 	s.parseToken(req, &args.Token)
-	s.parseEntMeta(req, &args.EnterpriseMeta)
+	if err := s.parseEntMeta(req, &args.EnterpriseMeta); err != nil {
+		return nil, err
+	}
 
 	var ignored string
 	if err := s.agent.RPC("ACL.TokenDelete", args, &ignored); err != nil {
@@ -518,8 +536,11 @@ func (s *HTTPServer) ACLTokenClone(resp http.ResponseWriter, req *http.Request, 
 		Create:     true,
 	}
 
-	s.parseEntMeta(req, &args.ACLToken.EnterpriseMeta)
-	if err := decodeBody(req.Body, &args.ACLToken); err != nil {
+	if err := s.parseEntMeta(req, &args.ACLToken.EnterpriseMeta); err != nil {
+		return nil, err
+	}
+	if err := decodeBodyStrict(req.Body, &args.ACLToken); err != nil {
+		err := s.handleUnknownEnterpriseFields(err)
 		return nil, BadRequestError{Reason: fmt.Sprintf("Token decoding failed: %v", err)}
 	}
 	s.parseToken(req, &args.Token)
@@ -544,7 +565,9 @@ func (s *HTTPServer) ACLRoleList(resp http.ResponseWriter, req *http.Request) (i
 	if done := s.parse(resp, req, &args.Datacenter, &args.QueryOptions); done {
 		return nil, nil
 	}
-	s.parseEntMeta(req, &args.EnterpriseMeta)
+	if err := s.parseEntMeta(req, &args.EnterpriseMeta); err != nil {
+		return nil, err
+	}
 
 	if args.Datacenter == "" {
 		args.Datacenter = s.agent.config.Datacenter
@@ -621,7 +644,9 @@ func (s *HTTPServer) ACLRoleRead(resp http.ResponseWriter, req *http.Request, ro
 	if done := s.parse(resp, req, &args.Datacenter, &args.QueryOptions); done {
 		return nil, nil
 	}
-	s.parseEntMeta(req, &args.EnterpriseMeta)
+	if err := s.parseEntMeta(req, &args.EnterpriseMeta); err != nil {
+		return nil, err
+	}
 
 	if args.Datacenter == "" {
 		args.Datacenter = s.agent.config.Datacenter
@@ -654,9 +679,12 @@ func (s *HTTPServer) ACLRoleWrite(resp http.ResponseWriter, req *http.Request, r
 		Datacenter: s.agent.config.Datacenter,
 	}
 	s.parseToken(req, &args.Token)
-	s.parseEntMeta(req, &args.Role.EnterpriseMeta)
+	if err := s.parseEntMeta(req, &args.Role.EnterpriseMeta); err != nil {
+		return nil, err
+	}
 
-	if err := decodeBody(req.Body, &args.Role); err != nil {
+	if err := decodeBodyStrict(req.Body, &args.Role); err != nil {
+		err := s.handleUnknownEnterpriseFields(err)
 		return nil, BadRequestError{Reason: fmt.Sprintf("Role decoding failed: %v", err)}
 	}
 
@@ -680,7 +708,9 @@ func (s *HTTPServer) ACLRoleDelete(resp http.ResponseWriter, req *http.Request, 
 		RoleID:     roleID,
 	}
 	s.parseToken(req, &args.Token)
-	s.parseEntMeta(req, &args.EnterpriseMeta)
+	if err := s.parseEntMeta(req, &args.EnterpriseMeta); err != nil {
+		return nil, err
+	}
 
 	var ignored string
 	if err := s.agent.RPC("ACL.RoleDelete", args, &ignored); err != nil {
@@ -700,7 +730,9 @@ func (s *HTTPServer) ACLBindingRuleList(resp http.ResponseWriter, req *http.Requ
 		return nil, nil
 	}
 
-	s.parseEntMeta(req, &args.EnterpriseMeta)
+	if err := s.parseEntMeta(req, &args.EnterpriseMeta); err != nil {
+		return nil, err
+	}
 
 	if args.Datacenter == "" {
 		args.Datacenter = s.agent.config.Datacenter
@@ -760,7 +792,9 @@ func (s *HTTPServer) ACLBindingRuleRead(resp http.ResponseWriter, req *http.Requ
 		return nil, nil
 	}
 
-	s.parseEntMeta(req, &args.EnterpriseMeta)
+	if err := s.parseEntMeta(req, &args.EnterpriseMeta); err != nil {
+		return nil, err
+	}
 
 	if args.Datacenter == "" {
 		args.Datacenter = s.agent.config.Datacenter
@@ -793,9 +827,12 @@ func (s *HTTPServer) ACLBindingRuleWrite(resp http.ResponseWriter, req *http.Req
 		Datacenter: s.agent.config.Datacenter,
 	}
 	s.parseToken(req, &args.Token)
-	s.parseEntMeta(req, &args.BindingRule.EnterpriseMeta)
+	if err := s.parseEntMeta(req, &args.BindingRule.EnterpriseMeta); err != nil {
+		return nil, err
+	}
 
-	if err := decodeBody(req.Body, &args.BindingRule); err != nil {
+	if err := decodeBodyStrict(req.Body, &args.BindingRule); err != nil {
+		err := s.handleUnknownEnterpriseFields(err)
 		return nil, BadRequestError{Reason: fmt.Sprintf("BindingRule decoding failed: %v", err)}
 	}
 
@@ -819,7 +856,9 @@ func (s *HTTPServer) ACLBindingRuleDelete(resp http.ResponseWriter, req *http.Re
 		BindingRuleID: bindingRuleID,
 	}
 	s.parseToken(req, &args.Token)
-	s.parseEntMeta(req, &args.EnterpriseMeta)
+	if err := s.parseEntMeta(req, &args.EnterpriseMeta); err != nil {
+		return nil, err
+	}
 
 	var ignored bool
 	if err := s.agent.RPC("ACL.BindingRuleDelete", args, &ignored); err != nil {
@@ -838,7 +877,9 @@ func (s *HTTPServer) ACLAuthMethodList(resp http.ResponseWriter, req *http.Reque
 	if done := s.parse(resp, req, &args.Datacenter, &args.QueryOptions); done {
 		return nil, nil
 	}
-	s.parseEntMeta(req, &args.EnterpriseMeta)
+	if err := s.parseEntMeta(req, &args.EnterpriseMeta); err != nil {
+		return nil, err
+	}
 
 	if args.Datacenter == "" {
 		args.Datacenter = s.agent.config.Datacenter
@@ -895,7 +936,9 @@ func (s *HTTPServer) ACLAuthMethodRead(resp http.ResponseWriter, req *http.Reque
 	if done := s.parse(resp, req, &args.Datacenter, &args.QueryOptions); done {
 		return nil, nil
 	}
-	s.parseEntMeta(req, &args.EnterpriseMeta)
+	if err := s.parseEntMeta(req, &args.EnterpriseMeta); err != nil {
+		return nil, err
+	}
 
 	if args.Datacenter == "" {
 		args.Datacenter = s.agent.config.Datacenter
@@ -929,9 +972,12 @@ func (s *HTTPServer) ACLAuthMethodWrite(resp http.ResponseWriter, req *http.Requ
 		Datacenter: s.agent.config.Datacenter,
 	}
 	s.parseToken(req, &args.Token)
-	s.parseEntMeta(req, &args.AuthMethod.EnterpriseMeta)
+	if err := s.parseEntMeta(req, &args.AuthMethod.EnterpriseMeta); err != nil {
+		return nil, err
+	}
 
-	if err := decodeBody(req.Body, &args.AuthMethod); err != nil {
+	if err := decodeBodyStrict(req.Body, &args.AuthMethod); err != nil {
+		err := s.handleUnknownEnterpriseFields(err)
 		return nil, BadRequestError{Reason: fmt.Sprintf("AuthMethod decoding failed: %v", err)}
 	}
 
@@ -958,7 +1004,9 @@ func (s *HTTPServer) ACLAuthMethodDelete(resp http.ResponseWriter, req *http.Req
 		AuthMethodName: methodName,
 	}
 	s.parseToken(req, &args.Token)
-	s.parseEntMeta(req, &args.EnterpriseMeta)
+	if err := s.parseEntMeta(req, &args.EnterpriseMeta); err != nil {
+		return nil, err
+	}
 
 	var ignored bool
 	if err := s.agent.RPC("ACL.AuthMethodDelete", args, &ignored); err != nil {
@@ -978,9 +1026,12 @@ func (s *HTTPServer) ACLLogin(resp http.ResponseWriter, req *http.Request) (inte
 		Auth:       &structs.ACLLoginParams{},
 	}
 	s.parseDC(req, &args.Datacenter)
-	s.parseEntMeta(req, &args.Auth.EnterpriseMeta)
+	if err := s.parseEntMeta(req, &args.Auth.EnterpriseMeta); err != nil {
+		return nil, err
+	}
 
-	if err := decodeBody(req.Body, &args.Auth); err != nil {
+	if err := decodeBodyStrict(req.Body, &args.Auth); err != nil {
+		err := s.handleUnknownEnterpriseFields(err)
 		return nil, BadRequestError{Reason: fmt.Sprintf("Failed to decode request body:: %v", err)}
 	}
 

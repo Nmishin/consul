@@ -1735,7 +1735,10 @@ func (t *Session) UnmarshalJSON(data []byte) (err error) {
 	}{
 		Alias: (*Alias)(t),
 	}
-	if err = json.Unmarshal(data, &aux); err != nil {
+
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	if err = decoder.Decode(&aux); err != nil {
 		return err
 	}
 	if aux.LockDelay != nil {
